@@ -2,6 +2,9 @@ from ollama import chat
 from pathlib import Path
 from groq import Groq 
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 soul = Path("soul.md")
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
