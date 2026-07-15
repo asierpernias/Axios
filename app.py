@@ -6,8 +6,9 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from soul import read, write
 from llm import ask
-
+from groq import Groq
 load_dotenv()
+
 
 ADMIN_ID = "U09F98XRE1G"
 
