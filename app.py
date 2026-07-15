@@ -32,4 +32,9 @@ if __name__ == "__main__":
         app,
         os.getenv("SLACK_APP_TOKEN"),
     )
+    from threading import Thread
+    from presence.loop import run
+
+    Thread(target=run, daemon=True).start()
+
     handler.start()
