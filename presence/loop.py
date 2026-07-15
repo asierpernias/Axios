@@ -1,6 +1,7 @@
 import json 
 import time
-from presence.hacktime import today_minutes
+from llm import ask
+from presence.hackatime import today
 from presence.notifier import send
 
 FILE = "presence/progress.json"
@@ -16,18 +17,28 @@ def save(data):
 def run():
     while True:
 
-        minutes = today_minutes()
+        stats = today()
 
-        if minutes is None:
+        if stats is None:
             time.sleep(300)
             continue
 
-        hours = minutes // 60
+        hours = int(stats["total_seconds"]// 3600) 
 
         progress = load()
 
         if hours > progress["last_hour"]:
-            send(f"🎉 ¡Ya llevas {hours} horas programando hoy!")
+            message = ask(
+                f""" 
+Eres Axios.
+Asier acaba de completar {hours} horas programando.
+
+Escribe un mensaje corto, motivacional, divertido.
+No mas de 25 palabras.
+"""
+            )
+
+            send(message)
 
             progress["last_hour"] = hours
             save(progress)
