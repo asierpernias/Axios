@@ -10,18 +10,10 @@ from llm import ask
 from presence.status import build_status
 from presence.focus import build_focus
 
-from integrations.hackatime import today
 from integrations.github import user_exists
-from integrations.users import (
-    set_hackatime,
-    set_github,
-)
+from integrations.users import set_github
 
-from integrations.link import (
-    start,
-    waiting,
-    finish,
-)
+from integrations.hackatime_oauth import get_auth_url
 
 load_dotenv()
 
@@ -62,49 +54,6 @@ def handle_message(event, say):
     ).strip()
 
 
-    if waiting(event["user"]):
-
-        key = text.strip()
-
-        print("Validando Hackatime key")
-
-        stats = today(key)
-
-        if stats is None:
-            say(
-                text="❌ Esa API key no es válida.",
-                thread_ts=event["ts"],
-            )
-            return
-
-
-        set_hackatime(
-            event["user"],
-            key,
-        )
-
-        finish(event["user"])
-
-
-        say(
-            text="✅ Hackatime vinculado correctamente.",
-            thread_ts=event["ts"],
-        )
-
-
-        try:
-            app.client.chat_delete(
-                channel=event["channel"],
-                ts=event["ts"],
-            )
-        except Exception as e:
-            print(e)
-
-
-        return
-
-
-
     if not text.lower().startswith("axios"):
         return
 
@@ -127,7 +76,7 @@ def handle_message(event, say):
 
 
     print(
-        "CMD:",
+        "COMANDO:",
         cmd,
         "ARGS:",
         args
@@ -135,7 +84,6 @@ def handle_message(event, say):
 
 
     thread = event.get("thread_ts") or event["ts"]
-
 
 
     if cmd == "status":
@@ -162,12 +110,15 @@ def handle_message(event, say):
 
     if cmd == "link":
 
-        start(event["user"])
+        url = get_auth_url(
+            event["user"]
+        )
 
         say(
             text=(
-                "🔗 Envíame tu Hackatime API key en este chat.\n"
-                "La validaré y borraré el mensaje automáticamente."
+                "🔗 Conecta tu cuenta de Hackatime:\n\n"
+                f"{url}\n\n"
+                "Después de aceptar volverás automáticamente a Axios."
             ),
             thread_ts=thread,
         )
@@ -181,7 +132,10 @@ def handle_message(event, say):
         if not args:
 
             say(
-                text="🐙 Usa: axios github TU_USUARIO",
+                text=(
+                    "🐙 Usa:\n"
+                    "axios github TU_USUARIO"
+                ),
                 thread_ts=thread,
             )
 
@@ -245,7 +199,7 @@ Modifícala siguiendo:
 
 {args}
 
-Devuelve únicamente el markdown.
+Devuelve únicamente markdown.
 """
         )
 
@@ -275,11 +229,19 @@ Devuelve únicamente el markdown.
 if __name__ == "__main__":
 
     from threading import Thread
+
     from presence.loop import run
+    from web.auth import run_web
 
 
     Thread(
         target=run,
+        daemon=True,
+    ).start()
+
+
+    Thread(
+        target=run_web,
         daemon=True,
     ).start()
 
