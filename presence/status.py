@@ -16,7 +16,7 @@ def build_status(slack_id: str):
         return(
             "❌ No has vinculado tu cuenta de Hackatime.\n\n"
             "Ejecuta:\n"
-            "`axios link TU_API_KEY`"
+            "`axios link`"
         )
     stats = today(api_key)
 
