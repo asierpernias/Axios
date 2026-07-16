@@ -1,26 +1,30 @@
-import os
-import requests 
-from dotenv import load_dotenv
+import requests
 
-load_dotenv()
 
-USER = os.getenv("HACKATIME_API_KEY")
+URL = "https://hackatime.hackclub.com/api/v1/users/current/status"
 
-def today():    
-    url = "https://hackatime.hackclub.com/api/hackatime/v1/users/current/statusbar/today"
-    print("API KEY:", USER)  
+
+def today(api_key):
+
+    if not api_key:
+        return None
+
     headers = {
-        "Authorization": f"Bearer {USER}"
+        "Authorization": f"Bearer {api_key}"
     }
 
-    print(headers)
+    r = requests.get(
+        URL,
+        headers=headers,
+        timeout=10,
+    )
 
-    r = requests.get(url, headers=headers, timeout=10)
-    
     print(r.status_code)
-    print(r.text)
+
     if r.status_code != 200:
         print(r.text)
         return None
-    
-    return r.json()["data"]["grand_total"]
+
+    data = r.json()
+
+    return data["data"]["grand_total"]
