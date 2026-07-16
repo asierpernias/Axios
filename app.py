@@ -6,16 +6,18 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from soul import read, write
 from llm import ask
-from groq import Groq
+
 from presence.status import build_status
 from presence.focus import build_focus
 
-from integrations.users import set_hackatime
 from integrations.hackatime import today
 from integrations.github import user_exists
-from integrations.users import set_github
-load_dotenv()
+from integrations.users import (
+    set_hackatime,
+    set_github,
+)
 
+load_dotenv()
 
 ADMIN_ID = "U09F98XRE1G"
 
@@ -26,97 +28,85 @@ app = App(
 
 
 @app.event("message")
-def handle_mention(event, say):
+def handle_message(event, say):
     if event.get("subtype"):
         return
 
-    text = event.get("text", "")
+    text = event.get("text", "").strip()
 
     if not text.lower().startswith("axios"):
         return
 
     question = text[5:].strip()
-    if question.lower().startswith("alma"):
-        if event["user"] != ADMIN_ID:
-            say("Solo Asier puede modificar mi alma")
-            return
-        instruction = question[4:].strip()
 
-        new_soul = ask(f"""
-Esta es tu personalidad: {read()}        
-Modificala siguiendo la instrucion: {instruction}
-Devuelve unicamente el nuevo markdown
-""")
-        write(new_soul)
-        say("Mi alma ha sido actualizada.")
+    if not question:
         return
-    
-    cmd = question.lower().strip()
 
-    print(cmd)
+    parts = question.split(maxsplit=1)
+
+    cmd = parts[0].lower()
+    args = parts[1].strip() if len(parts) > 1 else ""
+
+    print(f"CMD: {cmd}")
+    print(f"ARGS: {args}")
 
     if cmd == "status":
-        print("Status detectado")
         say(
             text=build_status(event["user"]),
             thread_ts=event.get("thread_ts") or event["ts"],
         )
         return
+
     if cmd == "focus":
-        print("FOcus0")
         say(
             text=build_focus(event["user"]),
-            thread_ts=event.get("thread_ts") or event["ts"]
+            thread_ts=event.get("thread_ts") or event["ts"],
         )
         return
-    
-    if cmd == "link":
-        parts = question.split(maxsplit=1)
 
-        if len(parts) == 1:
+    if cmd == "link":
+        if not args:
             say(
-               text = ( "🔗 Para vincular Hackatime ejecuta:\n\n"
-                "axios link TU_API_KEY"),
+                text=(
+                    "🔗 Para vincular tu cuenta de Hackatime ejecuta:\n\n"
+                    "axios link TU_API_KEY"
+                ),
                 thread_ts=event.get("thread_ts") or event["ts"],
             )
             return
-        api_key = parts[1].strip()
 
-        stats = today(api_key)
+        stats = today(args)
 
         if stats is None:
             say(
                 text="❌ API Key inválida.",
-                therad_ts=event.get("thread_ts") or event["ts"],
+                thread_ts=event.get("thread_ts") or event["ts"],
             )
             return
+
         set_hackatime(
             event["user"],
-            api_key,
+            args,
         )
 
         say(
-            text="✅ Tu cuenta de Hackatime ha sido vinculada correctamente.",
+            text="✅ Cuenta de Hackatime vinculada correctamente.",
             thread_ts=event.get("thread_ts") or event["ts"],
         )
         return
-    
-    if cmd == "github":
-        parts = question.split(maxsplit=1)
 
-        if len(parts) == 1:
+    if cmd == "github":
+        if not args:
             say(
                 text=(
-                    "🐙 Vincula tu cuenta de GitHub:\n\n"
+                    "🐙 Para vincular GitHub ejecuta:\n\n"
                     "axios github TU_USUARIO"
                 ),
                 thread_ts=event.get("thread_ts") or event["ts"],
             )
             return
 
-        username = parts[1].strip()
-
-        if not user_exists(username):
+        if not user_exists(args):
             say(
                 text="❌ Ese usuario de GitHub no existe.",
                 thread_ts=event.get("thread_ts") or event["ts"],
@@ -125,31 +115,63 @@ Devuelve unicamente el nuevo markdown
 
         set_github(
             event["user"],
-            username,
+            args,
         )
 
         say(
-            text=f"✅ GitHub vinculado correctamente ({username}).",
+            text=f"✅ GitHub vinculado correctamente: {args}",
             thread_ts=event.get("thread_ts") or event["ts"],
         )
         return
-            
-    
-    
+
+    if cmd == "alma":
+        if event["user"] != ADMIN_ID:
+            say("Solo Asier puede modificar mi alma.")
+            return
+
+        if not args:
+            say("Indica cómo quieres modificar mi personalidad.")
+            return
+
+        new_soul = ask(
+            f"""
+Esta es tu personalidad:
+
+{read()}
+
+Modifícala siguiendo esta instrucción:
+
+{args}
+
+Devuelve únicamente el nuevo markdown.
+"""
+        )
+
+        write(new_soul)
+
+        say("✅ Mi alma ha sido actualizada.")
+        return
+
     answer = ask(question)
 
-    say(   text=answer,
-        thread_ts= event.get("thread_ts") or event["ts"],
+    say(
+        text=answer,
+        thread_ts=event.get("thread_ts") or event["ts"],
     )
 
+
 if __name__ == "__main__":
+    from threading import Thread
+    from presence.loop import run
+
+    Thread(
+        target=run,
+        daemon=True,
+    ).start()
+
     handler = SocketModeHandler(
         app,
         os.getenv("SLACK_APP_TOKEN"),
     )
-    from threading import Thread
-    from presence.loop import run
-
-    Thread(target=run, daemon=True).start()
 
     handler.start()
