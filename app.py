@@ -29,28 +29,41 @@ app = App(
 
 @app.event("message")
 def handle_message(event, say):
+    print("\n========== NUEVO EVENTO ==========")
+    print(event)
+
     if event.get("subtype"):
+        print("Tiene subtype, ignorando.")
         return
 
     text = event.get("text", "").strip()
 
+    print(f"TEXT RAW: {repr(text)}")
+
     if not text.lower().startswith("axios"):
+        print("No empieza por 'axios'")
         return
 
     question = text[5:].strip()
 
+    print(f"QUESTION: {repr(question)}")
+
     if not question:
+        print("Pregunta vacía")
         return
 
     parts = question.split(maxsplit=1)
 
+    print(f"PARTS: {parts}")
+
     cmd = parts[0].lower()
     args = parts[1].strip() if len(parts) > 1 else ""
 
-    print(f"CMD: {cmd}")
-    print(f"ARGS: {args}")
+    print(f"CMD = {repr(cmd)}")
+    print(f"ARGS = {repr(args)}")
 
     if cmd == "status":
+        print(">>> STATUS")
         say(
             text=build_status(event["user"]),
             thread_ts=event.get("thread_ts") or event["ts"],
@@ -58,6 +71,7 @@ def handle_message(event, say):
         return
 
     if cmd == "focus":
+        print(">>> FOCUS")
         say(
             text=build_focus(event["user"]),
             thread_ts=event.get("thread_ts") or event["ts"],
@@ -65,6 +79,8 @@ def handle_message(event, say):
         return
 
     if cmd == "link":
+        print(">>> LINK")
+
         if not args:
             say(
                 text=(
@@ -77,6 +93,8 @@ def handle_message(event, say):
 
         stats = today(args)
 
+        print("Hackatime:", stats)
+
         if stats is None:
             say(
                 text="❌ API Key inválida.",
@@ -84,10 +102,7 @@ def handle_message(event, say):
             )
             return
 
-        set_hackatime(
-            event["user"],
-            args,
-        )
+        set_hackatime(event["user"], args)
 
         say(
             text="✅ Cuenta de Hackatime vinculada correctamente.",
@@ -96,6 +111,8 @@ def handle_message(event, say):
         return
 
     if cmd == "github":
+        print(">>> GITHUB")
+
         if not args:
             say(
                 text=(
@@ -106,17 +123,19 @@ def handle_message(event, say):
             )
             return
 
+        print("Comprobando usuario:", args)
+
         if not user_exists(args):
+            print("Usuario inexistente")
             say(
                 text="❌ Ese usuario de GitHub no existe.",
                 thread_ts=event.get("thread_ts") or event["ts"],
             )
             return
 
-        set_github(
-            event["user"],
-            args,
-        )
+        print("Usuario válido")
+
+        set_github(event["user"], args)
 
         say(
             text=f"✅ GitHub vinculado correctamente: {args}",
@@ -125,6 +144,8 @@ def handle_message(event, say):
         return
 
     if cmd == "alma":
+        print(">>> ALMA")
+
         if event["user"] != ADMIN_ID:
             say("Solo Asier puede modificar mi alma.")
             return
@@ -151,6 +172,8 @@ Devuelve únicamente el nuevo markdown.
 
         say("✅ Mi alma ha sido actualizada.")
         return
+
+    print(">>> ASK NORMAL")
 
     answer = ask(question)
 
