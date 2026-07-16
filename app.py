@@ -46,17 +46,22 @@ Devuelve unicamente el nuevo markdown
         say("Mi alma ha sido actualizada.")
         return
     
-    if question.lower().startswith("status"):
+    cmd = question.lower().strip()
+
+    print(cmd)
+
+    if cmd == "status":
+        print("Status detectado")
         say(
-            text = build_status(),
-            thread_ts=event.get("thread_ts") or event["ts"]
-            )
+            text=build_status(),
+            thread_ts=event.get("thread_ts") or event["ts"],
+        )
         return
-    
-    if question.lower().startswith("focus"):
+    if cmd == "focus":
+        print("FOcus0")
         say(
             text=build_focus(),
-            thread_ts=event.get("thread_ts") or event["ts"],
+            thread_ts=event.get("thread_ts") or event["ts"]
         )
         return
     
