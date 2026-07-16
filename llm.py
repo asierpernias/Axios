@@ -1,17 +1,21 @@
-from ollama import chat
 from pathlib import Path
-from groq import Groq 
+from groq import Groq
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 soul = Path("soul.md")
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+client = Groq(
+    api_key=os.getenv("GROQ_API_KEY")
+)
 
 
 def read():
     return soul.read_text(encoding="utf-8")
+
+
 def ask(prompt: str) -> str:
     response = client.chat.completions.create(
         model="openai/gpt-oss-20b",
@@ -26,6 +30,12 @@ def ask(prompt: str) -> str:
             }
         ],
         temperature=0.8,
-        max_completion_tokens=300
+        max_completion_tokens=600,
+        reasoning_effort="low"
     )
-    return response.choices[0].message.content
+
+    message = response.choices[0].message
+    if message.content:
+        return message.content.strip()
+
+    return ""
