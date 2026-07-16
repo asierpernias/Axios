@@ -42,7 +42,7 @@ def get_last_commit():
             "git",
             "log",
             "-1",
-            "--pretty=$s",
+            "--pretty=%",
         ]
     )
 
