@@ -71,3 +71,22 @@ def get_hackatime(slack_id):
         return None
     
     return user.get("hackatime_key")
+
+def set_github(slack_id, username):
+    data = _load()
+
+    if slack_id not in data:
+        create(slack_id)
+
+    data = _load()
+
+    data[slack_id]["github_username"] = username
+
+    _save(data)
+
+def get_github_username(slack_id):
+    user = get(slack_id)
+
+    if user is None:
+        return None
+    return user.get("github_username")

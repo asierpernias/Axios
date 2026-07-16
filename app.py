@@ -12,6 +12,8 @@ from presence.focus import build_focus
 
 from integrations.users import set_hackatime
 from integrations.hackatime import today
+from integrations.github import user_exists
+from integrations.users import set_github
 load_dotenv()
 
 
@@ -95,6 +97,39 @@ Devuelve unicamente el nuevo markdown
 
         say(
             text="✅ Tu cuenta de Hackatime ha sido vinculada correctamente.",
+            thread_ts=event.get("thread_ts") or event["ts"],
+        )
+        return
+    
+    if cmd == "github":
+        parts = question.split(maxsplit=1)
+
+        if len(parts) == 1:
+            say(
+                text=(
+                    "🐙 Vincula tu cuenta de GitHub:\n\n"
+                    "axios github TU_USUARIO"
+                ),
+                thread_ts=event.get("thread_ts") or event["ts"],
+            )
+            return
+
+        username = parts[1].strip()
+
+        if not user_exists(username):
+            say(
+                text="❌ Ese usuario de GitHub no existe.",
+                thread_ts=event.get("thread_ts") or event["ts"],
+            )
+            return
+
+        set_github(
+            event["user"],
+            username,
+        )
+
+        say(
+            text=f"✅ GitHub vinculado correctamente ({username}).",
             thread_ts=event.get("thread_ts") or event["ts"],
         )
         return
