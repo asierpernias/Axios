@@ -26,132 +26,141 @@ app = App(
     signing_secret=os.getenv("SLACK_SIGNING_SECRET"),
 )
 
-
 @app.event("message")
 def handle_message(event, say):
-    print("\n========== NUEVO EVENTO ==========")
-    print(event)
 
-    if event.get("subtype"):
-        print("Tiene subtype, ignorando.")
+    if event.get("bot_id"):
+        return
+
+    if event.get("subtype") and event.get("subtype") != "thread_broadcast":
         return
 
     text = event.get("text", "").strip()
 
-    print(f"TEXT RAW: {repr(text)}")
+    print("MENSAJE:", repr(text))
+
+    if not text:
+        return
+
+    bot_id = app.client.auth_test()["user_id"]
+
+    text = text.replace(
+        f"<@{bot_id}>",
+        ""
+    ).strip()
 
     if not text.lower().startswith("axios"):
-        print("No empieza por 'axios'")
         return
 
     question = text[5:].strip()
 
-    print(f"QUESTION: {repr(question)}")
-
     if not question:
-        print("Pregunta vacía")
         return
 
     parts = question.split(maxsplit=1)
 
-    print(f"PARTS: {parts}")
-
     cmd = parts[0].lower()
-    args = parts[1].strip() if len(parts) > 1 else ""
 
-    print(f"CMD = {repr(cmd)}")
-    print(f"ARGS = {repr(args)}")
+    args = ""
+
+    if len(parts) > 1:
+        args = parts[1].strip()
+
+    print(
+        "COMANDO:",
+        cmd,
+        "ARGS:",
+        args
+    )
+
+    thread = event.get("thread_ts") or event["ts"]
 
     if cmd == "status":
-        print(">>> STATUS")
         say(
             text=build_status(event["user"]),
-            thread_ts=event.get("thread_ts") or event["ts"],
+            thread_ts=thread,
         )
         return
 
     if cmd == "focus":
-        print(">>> FOCUS")
         say(
             text=build_focus(event["user"]),
-            thread_ts=event.get("thread_ts") or event["ts"],
+            thread_ts=thread,
         )
         return
 
-    if cmd == "link":
-        print(">>> LINK")
+    if cmd == "github":
 
         if not args:
             say(
-                text=(
-                    "🔗 Para vincular tu cuenta de Hackatime ejecuta:\n\n"
-                    "axios link TU_API_KEY"
-                ),
-                thread_ts=event.get("thread_ts") or event["ts"],
+                text="🐙 Usa: axios github TU_USUARIO",
+                thread_ts=thread,
+            )
+            return
+
+        if not user_exists(args):
+            say(
+                text="❌ Usuario de GitHub no encontrado.",
+                thread_ts=thread,
+            )
+            return
+
+        set_github(
+            event["user"],
+            args,
+        )
+
+        say(
+            text=f"✅ GitHub vinculado: {args}",
+            thread_ts=thread,
+        )
+        return
+
+
+    if cmd == "link":
+
+        if not args:
+            say(
+                text="🔗 Usa: axios link TU_API_KEY",
+                thread_ts=thread,
             )
             return
 
         stats = today(args)
 
-        print("Hackatime:", stats)
-
         if stats is None:
             say(
                 text="❌ API Key inválida.",
-                thread_ts=event.get("thread_ts") or event["ts"],
+                thread_ts=thread,
             )
             return
 
-        set_hackatime(event["user"], args)
+        set_hackatime(
+            event["user"],
+            args,
+        )
 
         say(
-            text="✅ Cuenta de Hackatime vinculada correctamente.",
-            thread_ts=event.get("thread_ts") or event["ts"],
+            text="✅ Hackatime vinculado.",
+            thread_ts=thread,
         )
         return
 
-    if cmd == "github":
-        print(">>> GITHUB")
-
-        if not args:
-            say(
-                text=(
-                    "🐙 Para vincular GitHub ejecuta:\n\n"
-                    "axios github TU_USUARIO"
-                ),
-                thread_ts=event.get("thread_ts") or event["ts"],
-            )
-            return
-
-        print("Comprobando usuario:", args)
-
-        if not user_exists(args):
-            print("Usuario inexistente")
-            say(
-                text="❌ Ese usuario de GitHub no existe.",
-                thread_ts=event.get("thread_ts") or event["ts"],
-            )
-            return
-
-        print("Usuario válido")
-
-        set_github(event["user"], args)
-
-        say(
-            text=f"✅ GitHub vinculado correctamente: {args}",
-            thread_ts=event.get("thread_ts") or event["ts"],
-        )
-        return
 
     if cmd == "alma":
-        print(">>> ALMA")
 
         if event["user"] != ADMIN_ID:
-            say("Solo Asier puede modificar mi alma.")
+            say(
+                text="Solo Asier puede modificar mi alma.",
+                thread_ts=thread,
+            )
             return
 
         if not args:
-            say("Indica cómo quieres modificar mi personalidad.")
+            say(
+                text="Necesito una instrucción.",
+                thread_ts=thread,
+            )
             return
 
         new_soul = ask(
@@ -160,28 +169,30 @@ Esta es tu personalidad:
 
 {read()}
 
-Modifícala siguiendo esta instrucción:
+Modifícala siguiendo:
 
 {args}
 
-Devuelve únicamente el nuevo markdown.
+Devuelve solo markdown.
 """
         )
 
         write(new_soul)
 
-        say("✅ Mi alma ha sido actualizada.")
+        say(
+            text="✅ Alma actualizada.",
+            thread_ts=thread,
+        )
+
         return
 
-    print(">>> ASK NORMAL")
 
     answer = ask(question)
 
     say(
         text=answer,
-        thread_ts=event.get("thread_ts") or event["ts"],
+        thread_ts=thread,
     )
-
 
 if __name__ == "__main__":
     from threading import Thread
