@@ -90,3 +90,10 @@ def get_github_username(slack_id):
     if user is None:
         return None
     return user.get("github_username")
+
+def has_github(slack_id):
+    user = get(slack_id)
+
+    if user is None:
+        return False
+    return bool(user.get("github_username"))
