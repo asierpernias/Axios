@@ -17,14 +17,18 @@ app = App(
     signing_secret=os.getenv("SLACK_SIGNING_SECRET"),
 )
 
-@app.event("app_mention")
+
+@app.event("message")
 def handle_mention(event, say):
-    print("!")
-    question = event["text"]
+    if event.get("subtype"):
+        return
 
-    if ">" in question:
-        question = question.split(">", 1)[1].strip()
+    text = event.get("text", "")
 
+    if not text.lower().startswith("axios"):
+        return
+
+    question = text[5:].strip()
     if question.lower().startswith("alma"):
         if event["user"] != ADMIN_ID:
             say("Solo Asier puede modificar mi alma")
