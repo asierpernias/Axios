@@ -56,3 +56,18 @@ def set_github(slack_id, username, token):
     data[slack_id]["github_token"] = token
 
     _save(data)
+
+def has_hackatime(slack_id):
+    user = get(slack_id)
+
+    if user is None:
+        return False
+    return bool(user.get("hackatime_key"))
+
+def get_hackatime(slack_id):
+    user = get(slack_id)
+
+    if user is None:
+        return None
+    
+    return user.get("hackatime_key")

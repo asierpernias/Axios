@@ -9,6 +9,9 @@ from llm import ask
 from groq import Groq
 from presence.status import build_status
 from presence.focus import build_focus
+
+from integrations.users import set_hackatime
+from integrations.hackatime import today
 load_dotenv()
 
 
@@ -64,6 +67,38 @@ Devuelve unicamente el nuevo markdown
             thread_ts=event.get("thread_ts") or event["ts"]
         )
         return
+    
+    if cmd == "link":
+        parts = question.split(maxsplit=1)
+
+        if len(parts) == 1:
+            say(
+               text = ( "🔗 Para vincular Hackatime ejecuta:\n\n"
+                "axios link TU_API_KEY"),
+                thread_ts=event.get("thread_ts") or event["ts"],
+            )
+            return
+        api_key = parts[1].strip()
+
+        stats = today(api_key)
+
+        if stats is None:
+            say(
+                text="❌ API Key inválida.",
+                therad_ts=event.get("thread_ts") or event["ts"],
+            )
+            return
+        set_hackatime(
+            event["user"],
+            api_key,
+        )
+
+        say(
+            text="✅ Tu cuenta de Hackatime ha sido vinculada correctamente.",
+            thread_ts=event.get("thread_ts") or event["ts"],
+        )
+        return
+            
     
     
     answer = ask(question)
