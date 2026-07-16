@@ -3,6 +3,7 @@ import time
 from llm import ask
 from presence.hackatime import today
 from presence.notifier import send
+from presence.profile import update_status
 
 FILE = "presence/progress.json"
 
@@ -23,7 +24,25 @@ def run():
             time.sleep(300)
             continue
 
-        hours = int(stats["total_seconds"]// 3600) 
+        total_seconds = int(stats["total_seconds"]) 
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        
+        if total_seconds >= 8*3600:
+            emoji = ":trophy:"
+        elif total_seconds >= 4*3600:
+            emoji = ":rocket:"
+        elif total_seconds >= 3600:
+            emoji = ":computer:"
+        else:
+            emoji= ":seeding:"   
+
+        update_status(
+            f"Coding · {hours}h {minutes}m today",
+            emoji
+        )
+
+
 
         progress = load()
 
@@ -42,5 +61,7 @@ No mas de 25 palabras.
 
             progress["last_hour"] = hours
             save(progress)
+
+
 
         time.sleep(300)
