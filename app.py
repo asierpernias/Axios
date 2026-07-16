@@ -56,14 +56,14 @@ Devuelve unicamente el nuevo markdown
     if cmd == "status":
         print("Status detectado")
         say(
-            text=build_status(),
+            text=build_status(event["user"]),
             thread_ts=event.get("thread_ts") or event["ts"],
         )
         return
     if cmd == "focus":
         print("FOcus0")
         say(
-            text=build_focus(),
+            text=build_focus(event["user"]),
             thread_ts=event.get("thread_ts") or event["ts"]
         )
         return

@@ -1,75 +1,32 @@
+from integrations.users import get_hackatime
+from integrations.hackatime import today
 from llm import ask
-from presence.hackatime import today
-from presence.git_stats import (
-    get_branch,
-    get_commits_today,
-    get_last_commit,
-    get_diff,
-    get_status
-)
 
-def build_focus():
-    status = today()
+def build_focus(slack_id: str):
+    api_key = get_hackatime(slack_id)
 
-    if status is None:
-            return "No se ha podido obtener la actividad"
+    if api_key is None:
+        return (
+            "❌ No has vinculado tu cuenta de Hackatime.\n\n"
+            "Ejecuta:\n"
+            "`axios link TU_API_KEY`"
+        )
     
-    total = status["total_seconds"]
+    stats = today(api_key)
+
+    if stats is None:
+        return "No he podido obetener tu actividad"
+    
+    total = stats["total_seconds"]
 
     hours = total // 3600
     minutes = (total % 3600) // 60
 
-    branch = get_branch()
-    commits = get_commits_today()
-    last_commit = get_last_commit()
-    diff = get_diff()
-    status = get_status()
+    return ask(
+              f"""
+El usuario lleva hoy {hours} horas y {minutes} minutos programando.
 
-
-    prompt = f"""
-Eres Axios.
-
-Este es el estado actual:
-
-Proyecto: Axios
-Rama: {branch}
-Tiempo hoy: {hours}h {minutes}m
-Commits hoy: {commits}
-Último commit:
-{last_commit}
-Git status:
-{status}
-git diff: 
-{diff}
-
-Escribe:
-
-- Un resumen muy corto.
-- En qué parece que está trabajando Asier.
-- Qué debería hacer después.
-
-Máximo 60 palabras.
+Escribe un mensaje corto motivador.
+Máximo 35 palabras.
 """
-    advice = ask(prompt)
-
-    return f"""🎯 *Focus*
-
-💻 *Proyecto*
-Axios
-
-🌿 *Rama*
-{branch}
-
-⏱ *Hoy*
-{hours}h {minutes}m
-
-📝 *Commits*
-{commits}
-
-📦 *Último commit*
-{last_commit}
-
----
-
-{advice}
-"""
+    )
