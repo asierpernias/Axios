@@ -7,7 +7,7 @@ from llm import ask
 from presence.notifier import send
 from presence.profile import update_status
 
-FILE = "presence/progress.json"
+FILE = Path("presence/progress.json")
 
 def load():
     if not FILE.exists():

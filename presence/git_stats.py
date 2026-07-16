@@ -45,3 +45,20 @@ def get_last_commit():
             "--pretty=$s",
         ]
     )
+
+def get_diff():
+    return _run(
+        [
+            "git",
+            "diff",
+            "--stat",
+        ]
+    )
+def get_status():
+    return _run(
+        [
+            "git", 
+            "status",
+            "--short",
+        ]
+    )

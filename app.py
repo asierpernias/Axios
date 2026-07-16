@@ -8,6 +8,7 @@ from soul import read, write
 from llm import ask
 from groq import Groq
 from presence.status import build_status
+from presence.focus import build_focus
 load_dotenv()
 
 
@@ -46,7 +47,19 @@ Devuelve unicamente el nuevo markdown
         return
     
     if question.lower().startswith("status"):
-        say(build_status())
+        say(
+            text = build_status(),
+            thread_ts=event.get("thread_ts") or event["ts"]
+            )
+        return
+    
+    if question.lower().startswith("focus"):
+        say(
+            text=build_focus(),
+            thread_ts=event.get("thread_ts") or event["ts"],
+        )
+        return
+    
     
     answer = ask(question)
 
