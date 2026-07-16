@@ -101,3 +101,6 @@ Any Groq-supported model can be used.
 ## License
 
 MIT
+
+## HACKATIME 
+https://hackatime.hackclub.com/api/v1/badge/U09F98XRE1G/asierpernias/Axios
