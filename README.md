@@ -1,6 +1,8 @@
 Aquí tienes un README más natural, sin marketing exagerado ni emojis.
 
 # Axios
+<img width="1024" height="300" alt="Sin título (9)" src="https://github.com/user-attachments/assets/d305a085-e413-42da-bc9e-3ea153eba8da" />
+
 
 Axios is a Slack companion designed to feel like a persistent teammate instead of a generic chatbot.
 
