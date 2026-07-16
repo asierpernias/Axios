@@ -7,6 +7,7 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from soul import read, write
 from llm import ask
 from groq import Groq
+from presence.status import build_status
 load_dotenv()
 
 
@@ -43,6 +44,9 @@ Devuelve unicamente el nuevo markdown
         write(new_soul)
         say("Mi alma ha sido actualizada.")
         return
+    
+    if question.lower().startswith("status"):
+        say(build_status())
     
     answer = ask(question)
 
