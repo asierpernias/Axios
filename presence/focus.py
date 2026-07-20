@@ -7,15 +7,15 @@ def build_focus(slack_id: str):
 
     if api_key is None:
         return (
-            "❌ No has vinculado tu cuenta de Hackatime.\n\n"
-            "Ejecuta:\n"
+            "❌You had not vinculed your Hackatime account.\n\n"
+            "Execute:\n"
             "`axios link`"
         )
     
     stats = today(api_key)
 
     if stats is None:
-        return "No he podido obetener tu actividad"
+        return "I could not find your activity"
     
     total = stats["total_seconds"]
 
