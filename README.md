@@ -7,15 +7,16 @@ Axios is a Slack companion designed to feel like a persistent teammate instead o
 
 It listens to messages in Slack, answers programming questions, keeps a persistent personality through a system prompt, and tracks coding activity through Hackatime and GitHub integrations.
 
+## Disclaimer 
+The hacktime github features is still under development (error on APIS)
+
 ## Features
 
-* Slack bot using Socket Mode
 * Configurable personality through `soul.md`
 * Responses generated with Groq
-* Persistent user system
 * Hackatime OAuth integration
 * GitHub account linking
-* Coding progress and presence updates
+* Coding progress and status updates depending on time coded
 * Status and focus information
 * Runtime personality updates from Slack (admin only)
 
@@ -87,7 +88,7 @@ HACKATIME_REDIRECT_URI=
 
 SLACK_CHANNEL=
 ```
-
+ However you can also try it just in https://hackclub.enterprise.slack.com/archives/C0BHQMZAW8N.
 ## Running
 
 ```bash
@@ -134,7 +135,7 @@ Links a GitHub account to the Slack user.
 
 The GitHub and Hackatime data is stored per Slack user.
 
-## Hackatime OAuth
+## Hackatime OAuth (NOT WORKIN)
 
 Axios uses Hackatime OAuth instead of sharing API keys directly.
 
@@ -173,20 +174,8 @@ client.chat.completions.create(
 )
 ```
 
-Any Groq-supported model can be used.
+Any Groq-supported model can be used. Select it depending to your hardware availability.
 
-## Security
-
-The following files should never be committed:
-
-```
-.env
-users.json
-```
-
-They contain tokens and linked account information.
-
-Add them to `.gitignore`.
 
 ## License
 
